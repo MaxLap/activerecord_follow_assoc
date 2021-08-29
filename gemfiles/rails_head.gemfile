@@ -1,0 +1,44 @@
+# frozen_string_literal: true
+
+# rubocop:disable Bundler/DuplicatedGem
+source "https://rubygems.org"
+
+# In order to get the latest ref to rails, we use the github's API
+# We need to pass an access token when on Travis-CI because all requests to
+# github come from the same IP, going over the unauthenticated limits.
+
+require "json"
+require "net/http"
+require "uri"
+
+if ENV["GITHUB_ACCESS_TOKEN"]
+  # Thnx to https://jhawthorn.github.io/curl-to-ruby/
+
+  req_github = lambda do |url|
+    uri = ::URI.parse(url)
+    Net::HTTP.start(uri.host, uri.port,
+                    use_ssl: uri.scheme == "https") do |http|
+
+      request = Net::HTTP::Get.new uri.request_uri
+      request.basic_auth "maxlap", ENV["GITHUB_ACCESS_TOKEN"]
+
+      http.request(request)
+    end
+  end
+
+  response = req_github.call("https://api.github.com/repos/rails/rails/branches/master")
+  rails_commit_sha = JSON.parse(response.body)["commit"]["sha"]
+
+  response = req_github.call("https://api.github.com/repos/rails/arel/branches/master")
+  arel_commit_sha = JSON.parse(response.body)["commit"]["sha"]
+
+  gem "activerecord", git: "https://github.com/rails/rails.git", ref: rails_commit_sha
+  gem "arel", git: "https://github.com/rails/arel.git", ref: arel_commit_sha
+else
+  gem "activerecord", git: "https://github.com/rails/rails.git"
+  gem "arel", git: "https://github.com/rails/arel.git"
+end
+gem "mysql2", "~> 0.5"
+gem "pg", "~> 1.1"
+
+gemspec path: "../"
