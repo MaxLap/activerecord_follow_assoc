@@ -1,0 +1,109 @@
+name: Test supported versions
+
+# Need the quotes, otherwise YAML.load, which we uses to generate run_tests_on_head.yml will interpret this
+# as the boolean `true`...
+'on':
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '0 10 * * 6'
+  workflow_dispatch:
+    branches: [ master ]
+
+env:
+  PGUSER: postgres
+  PGPASSWORD: postgres
+  MYSQL_USER: root
+  MYSQL_PASSWORD: root
+  # This set to false for run_tests_on_head by the rakefile
+  CACHE_DEPENDENCIES: 'true'
+  # Dumb workaround since it's not possible to clear caches in Github Actions
+  CACHE_VERSION: '3'
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - gemfile: gemfiles/rails_6_1.gemfile
+            ruby_version: 3.0
+          - gemfile: gemfiles/rails_6_1.gemfile
+            ruby_version: 2.7
+          - gemfile: gemfiles/rails_6_1.gemfile
+            ruby_version: 2.5
+
+          - gemfile: gemfiles/rails_6_0.gemfile
+            ruby_version: 2.7
+          - gemfile: gemfiles/rails_6_0.gemfile
+            ruby_version: 2.5
+
+          - gemfile: gemfiles/rails_5_2.gemfile
+            ruby_version: 2.6
+          - gemfile: gemfiles/rails_5_2.gemfile
+            ruby_version: 2.3
+
+          - gemfile: gemfiles/rails_5_1.gemfile
+            ruby_version: 2.5
+          - gemfile: gemfiles/rails_5_1.gemfile
+            ruby_version: 2.2
+
+          - gemfile: gemfiles/rails_5_0.gemfile
+            ruby_version: 2.4
+          - gemfile: gemfiles/rails_5_0.gemfile
+            ruby_version: 2.2
+
+          - gemfile: gemfiles/rails_4_2.gemfile
+            ruby_version: 2.4
+          - gemfile: gemfiles/rails_4_2.gemfile
+            ruby_version: 2.1
+
+          - gemfile: gemfiles/rails_4_1.gemfile
+            ruby_version: 2.3
+          - gemfile: gemfiles/rails_4_1.gemfile
+            ruby_version: 2.1
+
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:11
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          POSTGRES_USER: ${{env.PGUSER}}
+          POSTGRES_PASSWORD: ${{env.PGUSER}}
+    env:
+      BUNDLE_GEMFILE: ${{ matrix.gemfile }}
+      BUNDLE_PATH: vendor/bundle
+
+    steps:
+    - uses: actions/checkout@v2
+    - run: sudo service mysql start
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby_version }}
+    - uses: actions/cache@v2
+      if: ${{ env.CACHE_DEPENDENCIES == 'true' }}
+      with:
+        # The path given to bundler is used relatively to the directory of the gemfile
+        # I keep the different gemfiles in the 'gemfiles' directory, so the path to cache is also there.
+        path: gemfiles/vendor/bundle
+        key: ResetCaches1-${{ runner.os }}-gems-${{ env.CACHE_VERSION }}-ruby${{ matrix.ruby_version }}-${{ matrix.gemfile }}-${{ hashFiles(matrix.gemfile) }}-${{ hashFiles('activerecord_follow_assoc.gemspec') }}
+        restore-keys: ResetCaches1-${{ runner.os }}-gems-${{ env.CACHE_VERSION }}-ruby${{ matrix.ruby_version }}-${{ matrix.gemfile }}
+    - name: Install dependencies
+      run: |
+        bundle install --jobs 4 --retry 3
+    - run: psql --host=localhost --port=5432 -c 'CREATE DATABASE activerecord_follow_assoc'
+    - run: mysql -h 127.0.0.1 -u "${{ env.MYSQL_USER }}" -p${{ env.MYSQL_PASSWORD }} -e 'CREATE DATABASE activerecord_follow_assoc'
+    - run: DB=sqlite3 bundle exec rake test
+    - run: DB=pg bundle exec rake test
+    - run: DB=mysql bundle exec rake test
+      # MySQL build segfaults on older ruby version, no idea why and painful to debug, so just skip them.
+      if: ${{ matrix.ruby_version >= 2.4 || matrix.ruby_version == 'head' }}
