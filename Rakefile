@@ -24,4 +24,6 @@ task :generate_run_tests_on_head_workflow do
   File.write('.github/workflows/run_tests_on_head.yml', header + config.to_yaml)
 end
 
+task test: :spec
+
 task default: [:generate_run_tests_on_head_workflow, :spec]
