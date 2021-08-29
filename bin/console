@@ -1,0 +1,76 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require_relative "../spec/support/load_test_env"
+
+# You can add fixtures and/or initialization code here to make experimenting
+# with your gem easie You can also use a different console, if you like.
+
+# (If you use this, don't forget to add pry to your Gemfile!)
+# require "pry"
+# Pry.start
+
+module ActiveRecordFollowAssoc::Helpers
+  def make_data
+    s1 = Section.create!(name: 's1')
+    s2 = Section.create!(name: 's2')
+    s3 = Section.create!(name: 's3')
+    p1 = Post.create!(title: 'p1', section: s1)
+    c1_1 = p1.comments.create!(content: 'c1.1')
+    p2 = Post.create!(title: 'p2', section: s1)
+    c2_1 = p2.comments.create!(content: 'c2.1')
+    c2_2 = p2.comments.create!(content: 'c2.2')
+    p3 = Post.create!(title: 'p3', section: s2)
+    p3.comments.create!(content: 'c3.1')
+    t1 = Tag.create(name: 't1')
+    t2 = Tag.create(name: 't2')
+    t3 = Tag.create(name: 't3')
+
+    p1.tags << t1
+    p1.tags << t2
+    p2.tags << t1
+    p3.tags << t3
+    nil
+  end
+
+  def execute(sql = nil)
+    if sql.nil?
+      sql = ""
+      begin
+        line = gets
+        sql << line
+      end while line.present?
+    end
+    ActiveRecord::Base.connection.execute(sql).to_a
+  end
+
+  def log_sql(value = true)
+    ActiveRecord::Base.logger = Logger.new(value ? STDOUT : nil)
+    nil
+  end
+
+  alias_method :x, :execute
+
+  def self.inspect
+    <<-TEXT.strip_heredoc.rstrip
+      Helper functions:
+      * execute: (shortcut: `x`) Executes an sql query. If called with no parameters, will call gets until 
+                 and empty line is given
+      * log_sql(true/false): Toggles logging SQL to STDOUT
+      * make_data: Generate a basic set of data
+    TEXT
+  end
+
+  extend self
+end
+
+def helpers
+  ActiveRecordFollowAssoc::Helpers
+end
+
+
+include helpers
+
+require "irb"
+puts "\nUse method `helpers` to list helpers."
+IRB.start(__FILE__)

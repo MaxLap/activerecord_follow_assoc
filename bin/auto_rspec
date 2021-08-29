@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+
+require 'listen'
+
+pid = nil
+callback_block = proc do |modified, added, removed|
+  puts modified, added, removed
+  pid = Process.spawn('rspec')
+  Process.wait(pid)
+  pid = nil
+  puts "Finished at #{Time.now}"
+end
+callback_block.call([], [], [])
+
+listener = Listen.to('.', &callback_block )
+listener.ignore /.idea\//
+listener.ignore /.rspec_status/
+listener.start # not blocking
+begin
+  sleep
+rescue SignalException => e
+  raise unless e.signo == Signal.list['INT']
+  if pid
+    puts 'Waiting 3 seconds for rspec to finish'
+    30.times do
+      sleep(0.1)
+      break if pid.nil?
+    end
+
+    if pid
+      Process.kill('INT', pid)
+    end
+  end
+end
