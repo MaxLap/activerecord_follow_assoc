@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.description   = %q{In ActiveRecord, when building a query, you can now easily switch to querying an association. If you need the comments of some posts, but don't need the posts: `Post.where(...).follow_assoc(:comments)`. You can then chain `where` on the comments.}
   # TODO spec.homepage      = "TODO: Put your gem's website or public repo URL here."
   spec.license       = "MIT"
-  spec.required_ruby_version = Gem::Requirement.new(">= 2.3.0")
+  spec.required_ruby_version = Gem::Requirement.new(">= 2.1.0")
 
   spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
 
