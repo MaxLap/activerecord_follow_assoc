@@ -45,10 +45,6 @@ module Test
       return ENV["PGPASSWORD"] if ENV["PGPASSWORD"].present?
       nil
     end
-
-    def self.true_literal
-      'true'
-    end
   end
 
   module SQLite3
@@ -58,10 +54,6 @@ module Test
 
     def self.drop_and_create_database
       # NOOP for SQLite3
-    end
-
-    def self.true_literal
-      '1'
     end
   end
 
@@ -104,10 +96,6 @@ module Test
 
     def self.database_name
       "activerecord_follow_assoc"
-    end
-
-    def self.true_literal
-      'true'
     end
   end
 end
