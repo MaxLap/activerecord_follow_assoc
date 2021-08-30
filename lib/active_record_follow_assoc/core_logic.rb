@@ -63,7 +63,7 @@ module ActiveRecordFollowAssoc
             # https://github.com/rails/rails/issues/7365
             sub_relation = sub_relation.merge(assoc_constraint_relation)
           end
-          sub_relation = sub_relation.where(join_constraints).reselect(klass.primary_key).limit(1)
+          sub_relation = sub_relation.where(join_constraints).unscope(:select).select(klass.primary_key).limit(1)
 
           relation = relation.joins(sub_reflection.name)
                              .unscope(:select)
