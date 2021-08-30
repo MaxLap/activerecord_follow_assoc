@@ -52,6 +52,8 @@ describe "follow_assoc" do
   end
 
   it "follow a has_one with :as option (polymorphic)" do
+    skip if Test::SelectedDBHelper == Test::MySQL
+
     p1 = Post.create!(title: 'p1')
     p2 = Post.create!(title: 'p2')
     pb1 = PolyBelongsTo.create!(name: 'pb1', referred: p1)

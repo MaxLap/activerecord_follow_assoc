@@ -125,6 +125,8 @@ describe "follow_assoc" do
   end
 
   it "follows has_one with conditions" do
+    skip if Test::SelectedDBHelper == Test::MySQL
+
     p1 = Post.create!(title: 'p1')
     c1_1 = p1.comments.create!(content: 'c1.1', spam: true)
     c1_2 = p1.comments.create!(content: 'c1.2')

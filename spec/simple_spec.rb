@@ -56,6 +56,8 @@ describe "follow_assoc" do
   end
 
   it "follows has_one" do
+    skip if Test::SelectedDBHelper == Test::MySQL
+
     Post.where(title: 'p2').follow_assoc(:latest_comment).to_a.sort_by(&:id).should == [@c2_2]
     Post.where(title: 'p2').follow_assoc(:earliest_comment).to_a.sort_by(&:id).should == [@c2_1]
     Post.where(title: %w(p1 p2)).follow_assoc(:latest_comment).to_a.sort_by(&:id).should == [@c1_1, @c2_2]

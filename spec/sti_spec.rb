@@ -17,6 +17,8 @@ describe "follow_assoc" do
   end
 
   it "follows a STI has_one" do
+    skip if Test::SelectedDBHelper == Test::MySQL
+
     s1 = Section.create!(name: 's1')
     s2 = Section.create!(name: 's2')
     s3 = Section.create!(name: 's3')
