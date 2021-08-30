@@ -14,6 +14,7 @@ end
 require "active_support/all"
 
 require_relative "database_setup"
+require_relative "ignore_optional_in_42_and_less"
 require_relative "models"
 require_relative "schema"
 
