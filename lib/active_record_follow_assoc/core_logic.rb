@@ -31,7 +31,14 @@ module ActiveRecordFollowAssoc
 
     def self.follow_one_assoc(relation, association_name, options = {})
       reflection = fetch_reflection(relation, association_name)
-      reflection.check_preloadable!
+
+      if reflection.scope && reflection.scope.arity != 0
+        raise ArgumentError, <<-MSG.squish
+            The association scope '#{name}' is instance dependent (the scope
+            block takes an argument). Following instance dependent scopes is
+            not supported.
+        MSG
+      end
 
       reflection_chain, constraints_chain = ActiveRecordFollowAssoc::ActiveRecordCompat.chained_reflection_and_chained_constraints(reflection)
 
@@ -105,7 +112,7 @@ module ActiveRecordFollowAssoc
       reflection = relation_klass._reflections[association_name]
 
       if reflection.nil?
-        # Need to use build because this exception expects a record...
+        # Need a fake record because this exception expects a record...
         raise ActiveRecord::AssociationNotFoundError.new(relation_klass.new, association_name)
       end
 
