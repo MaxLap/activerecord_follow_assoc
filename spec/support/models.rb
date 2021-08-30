@@ -16,7 +16,7 @@ class Comment < ActiveRecord::Base
 
   belongs_to :post
   belongs_to :published_post, -> { where(published: true) }, class_name: 'Post', foreign_key: :post_id
-  belongs_to :published_post_s, -> { where("published = 1") }, class_name: 'Post', foreign_key: :post_id
+  belongs_to :published_post_s, -> { where("published = #{Test::SelectedDBHelper.true_literal}") }, class_name: 'Post', foreign_key: :post_id
   belongs_to :published_post_a, -> { where("published = ?", true) }, class_name: 'Post', foreign_key: :post_id
 
   belongs_to :parent_comment, optional: true, class_name: 'Comment'
@@ -44,7 +44,7 @@ class Post < ActiveRecord::Base
 
   has_many :comments
   has_many :spam_comments, -> { where(spam: true) }, class_name: 'Comment'
-  has_many :spam_comments_s, -> { where("spam = 1") }, class_name: 'Comment'
+  has_many :spam_comments_s, -> { where("spam = #{Test::SelectedDBHelper.true_literal}") }, class_name: 'Comment'
   has_many :spam_comments_a, -> { where("spam = ?", true) }, class_name: 'Comment'
 
   # Not having order should only happen when there is actually only one record. Otherwise, it's a fun souce of bugs...
@@ -52,16 +52,16 @@ class Post < ActiveRecord::Base
   has_one :latest_comment, -> { order('id desc') }, class_name: 'Comment'
   has_one :earliest_comment, -> { order('id asc') }, class_name: 'Comment'
   has_one :latest_spam_comment, -> { where(spam: true).order('id desc') }, class_name: 'Comment'
-  has_one :latest_spam_comment_s, -> { where("spam = 1").order('id desc') }, class_name: 'Comment'
+  has_one :latest_spam_comment_s, -> { where("spam = #{Test::SelectedDBHelper.true_literal}").order('id desc') }, class_name: 'Comment'
   has_one :latest_spam_comment_a, -> { where("spam = ?", true).order('id desc') }, class_name: 'Comment'
 
   belongs_to :section
   belongs_to :public_section, -> { where(public: true) }, class_name: 'Section', foreign_key: 'section_id'
-  belongs_to :public_section_s, -> { where("public = 1") }, class_name: 'Section', foreign_key: 'section_id'
+  belongs_to :public_section_s, -> { where("public = #{Test::SelectedDBHelper.true_literal}") }, class_name: 'Section', foreign_key: 'section_id'
   belongs_to :public_section_a, -> { where("public = ?", true) }, class_name: 'Section', foreign_key: 'section_id'
   has_and_belongs_to_many :tags
   has_and_belongs_to_many :internal_tags, -> { where(internal: true) }, class_name: 'Tag'
-  has_and_belongs_to_many :internal_tags_s, -> { where("internal = 1") }, class_name: 'Tag'
+  has_and_belongs_to_many :internal_tags_s, -> { where("internal = #{Test::SelectedDBHelper.true_literal}") }, class_name: 'Tag'
   has_and_belongs_to_many :internal_tags_a, -> { where("internal = ?", true) }, class_name: 'Tag'
 
   has_many :referring_PolyBelongsTo, class_name: 'PolyBelongsTo', as: :referred
@@ -91,7 +91,7 @@ class Section < ActiveRecord::Base
   has_many :comments, through: :posts
 
   has_many :published_posts, -> { where(published: true) }, class_name: 'Post'
-  has_many :published_posts_s, -> { where("published = 1") }, class_name: 'Post'
+  has_many :published_posts_s, -> { where("published = #{Test::SelectedDBHelper.true_literal}") }, class_name: 'Post'
   has_many :published_posts_a, -> { where("published = ?", true) }, class_name: 'Post'
   has_many :published_spam_comments, through: :published_posts, source: :spam_comments
   has_many :published_spam_comments_s, through: :published_posts_s, source: :spam_comments_s
