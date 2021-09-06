@@ -117,6 +117,14 @@ spam_comments_in_section = my_sections.follow_assoc(:posts).follow_assoc(:commen
 The SQL to do this while isolating the different layers of conditions is a mess and I worry about
 the resulting performance. So for now, this will raise an exception.
 
+**MySQL doesn't support sub-limit**
+
+On MySQL databases, it is not possible to use has_one associations and associations with a scope that apply either a limit or an offset.
+
+I do not know of a way to do a SQL query that can deal with all the specifics of has_one for MySQL. If you have one, then please suggest it in an issue/pull request.
+
+In order to work around this, you must use the ignore_limit option. The behavior is less correct, but better than being unable to use the gem.
+
 ## Another recommended gem
 
 If you feel a need for this gem's feature, you may also be interested in another of gem of mine: [activerecord_where_assoc](https://github.com/MaxLap/activerecord_where_assoc).

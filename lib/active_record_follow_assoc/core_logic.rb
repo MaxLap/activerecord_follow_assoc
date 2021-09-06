@@ -50,27 +50,14 @@ module ActiveRecordFollowAssoc
         klass = class_for_reflection(sub_reflection, options[:poly_belongs_to])
         alias_scope, join_constraints = wrapper_and_join_constraints(sub_reflection, options[:poly_belongs_to])
 
-        if sub_reflection.macro == :has_one
+        constraints_relation = resolve_constraints(sub_reflection, klass, constraints_chain[i])
+        constraints_relation = constraints_relation.unscope(:limit, :offset, :order) if option_value(options, :ignore_limit)
+
+        if constraints_relation.limit_value
           if alias_scope
             raise "#{sub_reflection.name} is a recursive has_one, this is not supported by follow_assoc."
           end
-          sub_relation = klass.unscoped
-          constraints_chain[i].each do |callable|
-            assoc_constraint_relation = klass.unscoped.instance_exec(nil, &callable)
-
-            if false #TODO callable != assoc_scope_allowed_lim_off
-              # I just want to remove the current values without screwing things in the merge below
-              # so we cannot use #unscope
-              assoc_constraint_relation.limit_value = nil
-              assoc_constraint_relation.offset_value = nil
-              assoc_constraint_relation.order_values = []
-            end
-
-            # Need to use merge to replicate the Last Equality Wins behavior of associations
-            # https://github.com/rails/rails/issues/7365
-            sub_relation = sub_relation.merge(assoc_constraint_relation)
-          end
-          sub_relation = sub_relation.where(join_constraints).unscope(:select).select(klass.primary_key).limit(1)
+          sub_relation = constraints_relation.where(join_constraints).unscope(:select).select(klass.primary_key)
 
           relation = relation.joins(sub_reflection.name)
                              .unscope(:select)
@@ -84,23 +71,8 @@ module ActiveRecordFollowAssoc
             join_constraints = nil
           end
 
-          relation = klass.default_scoped.where(sql_for_any_exists(relation.where(join_constraints)))
-
-          constraints_chain[i].each do |callable|
-            assoc_constraint_relation = klass.unscoped.instance_exec(nil, &callable)
-
-            if false #TODO callable != assoc_scope_allowed_lim_off
-              # I just want to remove the current values without screwing things in the merge below
-              # so we cannot use #unscope
-              assoc_constraint_relation.limit_value = nil
-              assoc_constraint_relation.offset_value = nil
-              assoc_constraint_relation.order_values = []
-            end
-
-            # Need to use merge to replicate the Last Equality Wins behavior of associations
-            # https://github.com/rails/rails/issues/7365
-            relation = relation.merge(assoc_constraint_relation)
-          end
+          relation = klass.unscoped.where(sql_for_any_exists(relation.where(join_constraints)))
+          relation = relation.merge(constraints_relation)
         end
       end
 
@@ -146,6 +118,34 @@ module ActiveRecordFollowAssoc
       end
 
       [alias_scope, constraints]
+    end
+
+    def self.resolve_constraints(reflection, klass, constraints)
+      relation = klass.default_scoped
+      assoc_scope_allowed_lim_off = assoc_scope_to_keep_lim_off_from(reflection)
+
+      constraints.each do |callable|
+        assoc_constraint_relation = klass.unscoped.instance_exec(nil, &callable)
+
+        if callable != assoc_scope_allowed_lim_off
+          # I just want to remove the current values without screwing things in the merge below
+          # so we cannot use #unscope
+          assoc_constraint_relation.limit_value = nil
+          assoc_constraint_relation.offset_value = nil
+          assoc_constraint_relation.order_values = []
+        end
+
+        # Need to use merge to replicate the Last Equality Wins behavior of associations
+        # https://github.com/rails/rails/issues/7365
+        relation = relation.merge(assoc_constraint_relation)
+      end
+
+      relation = relation.limit(1) if reflection.macro == :has_one
+
+      if user_defined_actual_source_reflection(reflection).macro == :belongs_to
+        relation = relation.unscope(:limit, :offset, :order)
+      end
+      relation
     end
 
     def self.build_alias_scope_for_recursive_association(reflection, poly_belongs_to_klass)
@@ -203,8 +203,21 @@ module ActiveRecordFollowAssoc
       end
     end
 
-    def self.option_value(option)
-      nil
+    def self.assoc_scope_to_keep_lim_off_from(reflection)
+      # For :through associations, it's pretty hard/tricky to apply limit/offset/order of the
+      # whole has_* :through. For now, we only apply those of the direct associations from one model
+      # to another that the :through uses and we ignore the limit/offset/order from the scope of has_* :through.
+      #
+      # The exception is for has_and_belongs_to_many, which behind the scene, use a has_many :through.
+      # For those, since we know there is no limits on the internal has_many and the belongs_to,
+      # we can do a special case and handle their limit. This way, we can treat them the same way we treat
+      # the other macros, we only apply the limit/offset/order of the deepest user-define association.
+      user_defined_actual_source_reflection(reflection).scope
+    end
+
+    # Gets the value from the options or fallback to default
+    def self.option_value(options, key)
+      options.fetch(key) { ActiveRecordFollowAssoc.default_options[key] }
     end
 
     def self.poly_belongs_to?(reflection)
