@@ -12,7 +12,7 @@ describe "follow_assoc" do
     c1_1 = p1.comments.create!(content: 'c1.1')
     c1_2 = p1.comments.create!(content: 'c1.2')
     p2 = Post.create!(title: 'p2')
-    c2_1 = p1.comments.create!(content: 'c2.1')
+    c2_1 = p2.comments.create!(content: 'c2.1')
     c2_2 = p2.comments.create!(content: 'c2.2')
     p3 = Post.create!(title: 'p3')
     p3.comments.create!(content: 'c3.1')

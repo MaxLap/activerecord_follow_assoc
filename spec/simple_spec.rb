@@ -38,7 +38,7 @@ describe "follow_assoc" do
     Section.where(name: 's1').follow_assoc(:comments).to_a.should == [@c1_1, @c2_1, @c2_2]
   end
 
-  it "follows has_many_and_belongs_to_many" do
+  it "follows has_and_belongs_to_many" do
     @t1 = Tag.create(name: 't1')
     @t2 = Tag.create(name: 't2')
     @t3 = Tag.create(name: 't3')
