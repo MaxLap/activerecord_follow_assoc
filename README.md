@@ -5,9 +5,9 @@ This gem is still a work in progress. It hasn't been released yet.
 ![Test supported versions](https://github.com/MaxLap/activerecord_follow_assoc/workflows/Test%20supported%20versions/badge.svg)
 
 Easily follow associations in your ActiveRecord queries, so you can go from querying one model to querying
-the association's model.
+an association's model.
 
-Say you have a query such as: `my_posts = Post.where(published: true)`. You can do
+From this query: `my_posts = Post.where(published: true)`, you can do
 `my_posts.follow_assoc(:comments)` to now query the comments of the published posts.
 
 `follow_assoc` can follow all kinds of associations: `belongs_to`, `has_many`, `has_one`, `has_and_belongs_to_many`.
@@ -74,6 +74,8 @@ You could also add some `has_many :through` associations to make `flat_map` and 
 ## Installation
 
 **This is not released yet. This won't work.**
+Rails 4.1 to 6.1 are supported with Ruby 2.1 to 3.0. Tested against SQLite3, PostgreSQL and MySQL. The gem
+only depends on the `activerecord` gem.
 
 Add this line to your application's Gemfile:
 
