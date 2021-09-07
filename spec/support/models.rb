@@ -9,7 +9,8 @@ class Comment < ActiveRecord::Base
       t.integer :post_id
       t.integer :parent_comment_id
       t.string :content
-      t.integer :spam
+      t.integer :spam, null: false, default: 0 # basically a boolean... but had some issues with sqlite in
+      t.integer :default_scope_hidden_comment, null: false, default: 0 # basically a boolean... but had some issues with sqlite in
     end
     add_index :comments, :content, unique: true # Helps avoid mistakes in a test's code
   end
@@ -29,6 +30,8 @@ class Comment < ActiveRecord::Base
   belongs_to :instance_dependent_post, -> (obj) { "Never executed, tests fail before reaching this" }, class_name: 'Post'
 
   has_one :section, through: :post
+
+  default_scope -> { where(default_scope_hidden_comment: 0) }
 end
 
 class Post < ActiveRecord::Base
@@ -36,8 +39,9 @@ class Post < ActiveRecord::Base
     create_table :posts do |t|
       t.integer :section_id
       t.string :title
-      t.integer :author_id
-      t.integer :published
+      t.integer :author_id, null: false, default: 0 # basically a boolean... but had some issues with sqlite in
+      t.integer :published, null: false, default: 0 # basically a boolean... but had some issues with sqlite in
+      t.integer :default_scope_hidden_post, null: false, default: 0 # basically a boolean... but had some issues with sqlite in
     end
     add_index :posts, :title, unique: true # Helps avoid mistakes in a test's code
   end
@@ -50,7 +54,9 @@ class Post < ActiveRecord::Base
   # Not having order should only happen when there is actually only one record. Otherwise, it's a fun souce of bugs...
   has_one :one_comment_without_order, class_name: 'Comment'
   has_one :latest_comment, -> { order('id desc') }, class_name: 'Comment'
+  has_many :latest_3_comments, -> { order('id desc').limit(3) }, class_name: 'Comment'
   has_one :earliest_comment, -> { order('id asc') }, class_name: 'Comment'
+  has_many :earliest_3_comments, -> { order('id asc').limit(3) }, class_name: 'Comment'
   has_one :latest_spam_comment, -> { where(spam: 1).order('id desc') }, class_name: 'Comment'
   has_one :latest_spam_comment_s, -> { where("spam = 1").order('id desc') }, class_name: 'Comment'
   has_one :latest_spam_comment_a, -> { where("spam = ?", 1).order('id desc') }, class_name: 'Comment'
@@ -76,6 +82,8 @@ class Post < ActiveRecord::Base
   has_many :instance_dependent_comments, -> (obj) { "Never executed, tests fail before reaching this" }, class_name: 'Comment'
   has_one :instance_dependent_one_comment, -> (obj) { "Never executed, tests fail before reaching this" }, class_name: 'Comment'
   has_and_belongs_to_many :instance_dependent_tags, -> (obj) { "Never executed, tests fail before reaching this" }, class_name: 'Tag'
+
+  default_scope -> { where(default_scope_hidden_post: 0) }
 end
 
 class Section < ActiveRecord::Base
@@ -83,6 +91,7 @@ class Section < ActiveRecord::Base
     create_table :sections do |t|
       t.string :name
       t.integer :public
+      t.integer :default_scope_hidden_section, null: false, default: 0 # basically a boolean... but had some issues with sqlite in
     end
     add_index :sections, :name, unique: true # Helps avoid mistakes in a test's code
   end
@@ -99,18 +108,23 @@ class Section < ActiveRecord::Base
 
   has_many :favoriting_users, class_name: 'User', foreign_key: 'favorite_section_id'
   has_one :latest_favoriting_user, -> { order("id desc")}, class_name: 'User', foreign_key: 'favorite_section_id'
+
+  default_scope -> { where(default_scope_hidden_section: 0) }
 end
 
 class Tag < ActiveRecord::Base
   CREATE_TABLE_BLOCK = proc do
     create_table :tags do |t|
       t.string :name
-      t.integer :internal
+      t.integer :internal, null: false, default: 0 # basically a boolean... but had some issues with sqlite in
+      t.integer :default_scope_hidden_tag, null: false, default: 0 # basically a boolean... but had some issues with sqlite in
     end
     add_index :tags, :name, unique: true # Helps avoid mistakes in a test's code
   end
 
   has_and_belongs_to_many :posts
+
+  default_scope -> { where(default_scope_hidden_tag: 0) }
 end
 
 class RecursiveHasAndBelongsToMany < ActiveRecord::Base
