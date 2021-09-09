@@ -13,10 +13,10 @@ From this query: `my_posts = Post.where(published: true)`, you can do
 `follow_assoc` can follow all kinds of associations: `belongs_to`, `has_many`, `has_one`, `has_and_belongs_to_many`.
 
 `has_one` will actually be treated as a has_one. So `my_posts.follow_assoc(:last_comment)` won't return every
-comments of the posts in `my_posts`, only first one of each.
+comments of the posts in `my_posts`, only last one of each post.
 
-No query is executed by `follow_assoc`, so the `my_posts` query isn't loaded from the database. It's only when the
-resulting relation is used that the query is executed.
+No query is executed by `follow_assoc`. The `my_posts` query isn't loaded from the database either. It's only when the
+resulting relation is used that the built query is executed (as a regular query would be).
 
 ## Why / when do you need this?
 
@@ -117,7 +117,8 @@ spam_comments_in_section = my_sections.follow_assoc(:posts).follow_assoc(:commen
 **No support for recursive has_one**
 
 The SQL to do this while isolating the different layers of conditions is a mess and I worry about
-the resulting performance. So for now, this will raise an exception.
+the resulting performance. So for now, this will raise an exception. You can use the ignore_limit: true option
+to treat the has_one as a has_many.
 
 **MySQL doesn't support sub-limit**
 
