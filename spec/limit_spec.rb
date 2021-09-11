@@ -4,6 +4,8 @@ require_relative "support/spec_helper"
 
 describe "follow_assoc" do
   it "follows has_many with limit on the assoc" do
+    skip if Test::SelectedDBHelper == Test::MySQL
+
     p1 = Post.create!(title: 'p1')
     c1_1 = p1.comments.create!(content: 'c1.1')
     c1_2 = p1.comments.create!(content: 'c1.2')
