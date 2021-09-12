@@ -95,6 +95,8 @@ Or install it yourself with:
 
 ## Usage
 
+The doc is [here](https://maxlap.dev/activerecord_follow_assoc/ActiveRecordFollowAssoc/QueryMethods.html). Here is a basic usage:
+
 Starting from a query or a model, you call `follow_assoc` with an association. What you get back is another query,
 but it is on the association's model. That new query also has a `where` to only return the records that are 
 directly associated with the scopes that the initial query would have returned..
