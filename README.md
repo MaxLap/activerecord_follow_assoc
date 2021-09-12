@@ -21,15 +21,17 @@ resulting relation is used that the built query is executed (as a regular query 
 ## Why / when do you need this?
 
 As applications grow, you can end up with quite complex data model and even more complex business rules. You may end up
-needing to fetch records that are rather deep in your associations.
+needing to fetch records that are deep in your associations.
 
-As a simple example, let's say you want the recent comments made in one of 3 sections of a blog.
+As a simple example, let's say you have a helper which receives sections of a blog and must return the recent comments
+in those sections.
+```ruby
+def recent_comments_within(sections)
+  sections.follow_assoc(:posts, :comments).recent
+end
+```
 
-```
-# My section is the relation
-# recent is a scope on comments.
-my_sections.follow_assoc(:posts, :comments).recent
-```
+Note that this won't work if `sections` is an `Array`, see [Usage](#Usage) for details.
 
 Doing this without follow_assoc can be verbose, error-prone and less efficient depending on the approach taken.
 
@@ -94,10 +96,11 @@ Or install it yourself with:
 ## Usage
 
 Starting from a query or a model, you call `follow_assoc` with an association. What you get back is another query,
-but it is on the association's model, and is filtere.
+but it is on the association's model. That new query also has a `where` to only return the records that are 
+directly associated with the scopes that the initial query would have returned..
 
 So `my_comments.follow_assoc(:posts)` gives you a query on `Post` which only returns the posts that were 
-related to the `my_comments`.
+related to the records that `my_comments` would return.
 
 ```
 # Getting the spam comments to posts by a specific author
@@ -111,6 +114,11 @@ spam_comments_in_section = my_sections.follow_assoc(:posts, :comments).spam
 # Equivalent to
 spam_comments_in_section = my_sections.follow_assoc(:posts).follow_assoc(:comments).spam
 ```
+
+The `follow_assoc` method is only available on models and queries (also often called relation or scope). You cannot use
+it on an `Array` of record. If you need to use `follow_assoc` in that situation, then you must make a query yourself:
+`sections_query = Section.where(id: my_sections)`. Then you can use `follow_assoc` as explained: 
+`spam_comments_in_section = sections_query.follow_assoc(:posts, :comments).spam` 
 
 ## Known issues
 
@@ -130,9 +138,18 @@ In order to work around this, you must use the ignore_limit option. The behavior
 
 ## Another recommended gem
 
-If you feel a need for this gem's feature, you may also be interested in another of gem of mine: [activerecord_where_assoc](https://github.com/MaxLap/activerecord_where_assoc).
+If you feel a need for this gem's feature, you may also be interested in another gem I made: [activerecord_where_assoc](https://github.com/MaxLap/activerecord_where_assoc).
 
-It allows you to make conditions based on your associations (without changing the kind of objects returned). For simple cases, they can both fit your need, but each can handle different situations.
+It allows you to make conditions based on your associations (without changing the kind of objects returned). For simple cases, it's possible that both can build the query your need, but each can handle different situations. Here is an example:
+
+```ruby
+# Find every posts that have comments by an admin
+Post.where_assoc_exists([:comments, :author], &:admins)
+```
+
+This could be done with `follow_assoc`: `User.admins.follow_assoc(:comments, :post)`. But if you wanted conditions on
+a second association, then `follow_assoc` wouldn't work. It all depends on the context where you need to do the query
+and what starting point you have.
 
 ## Development
 

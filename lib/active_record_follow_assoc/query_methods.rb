@@ -8,11 +8,20 @@ module ActiveRecordFollowAssoc::QueryMethods
   # of the current relation, but without loading the records of the first relation and
   # without having to worry about eager loading.
   #
-  # Examples (with equivalent +#map+)
+  # Examples (with equivalent +#flat_map+)
   #
   #   # Comments of published posts
   #   Post.where(published: true).follow_assoc(:comments)
-  #   Post.where(published: true).flat_map(:comments)
+  #   # Somewhat equivalent to. (Need to use preload to avoid the N+1 query problem)
+  #   Post.where(published: true).preload(:comments).flat_map(:comments)
+  #
+  # The main differences between the +#flat_map+ and +#follow_assoc+ approaches:
+  # * +#follow_assoc+ returns a query (or relation or scope, however you call it), so you can
+  #   use other scoping methods, such as +#where+, +#limit+, +#order+.
+  # * +#flat_map+ returns an Array, so you cannot use other scoping methods.
+  # * +#flat_map+ must be used with eager loading. Forgetting to do so makes N+1 query likely.
+  # * +#follow_assoc+ only loads the final matched records.
+  # * +#flat_map+ loads every associations on the way, this is wasteful when you don't need them.
   #
   # [association_names]
   #   The associations that you want to follow. They are your +#belongs_to+, +#has_many+,
@@ -25,7 +34,7 @@ module ActiveRecordFollowAssoc::QueryMethods
   #
   #   If you are passing multiple association_names, the options only affect the last association.
   #
-  # [:ignore_limit option]
+  # [option :ignore_limit]
   #   When true, +#limit+ and +#offset+ that are set from default_scope, on associations, and from
   #   +#has_one+ are ignored. <br>
   #   Removing the limit from +#has_one+ makes them be treated like a +#has_many+.

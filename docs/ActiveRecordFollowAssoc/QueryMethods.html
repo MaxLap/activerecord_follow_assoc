@@ -120,12 +120,26 @@
 
 <p>You could say this is a way of doing a <code>#flat_map</code> of the association on the result of the current relation, but without loading the records of the first relation and without having to worry about eager loading.</p>
 
-<p>Examples (with equivalent <code>#map</code>)</p>
+<p>Examples (with equivalent <code>#flat_map</code>)</p>
 
 <pre class="ruby"><span class="ruby-comment"># Comments of published posts</span>
 <span class="ruby-constant">Post</span>.<span class="ruby-identifier">where</span>(<span class="ruby-value">published:</span> <span class="ruby-keyword">true</span>).<span class="ruby-identifier">follow_assoc</span>(<span class="ruby-value">:comments</span>)
-<span class="ruby-constant">Post</span>.<span class="ruby-identifier">where</span>(<span class="ruby-value">published:</span> <span class="ruby-keyword">true</span>).<span class="ruby-identifier">flat_map</span>(<span class="ruby-value">:comments</span>)
+<span class="ruby-comment"># Somewhat equivalent to. (Need to use preload to avoid the N+1 query problem)</span>
+<span class="ruby-constant">Post</span>.<span class="ruby-identifier">where</span>(<span class="ruby-value">published:</span> <span class="ruby-keyword">true</span>).<span class="ruby-identifier">preload</span>(<span class="ruby-value">:comments</span>).<span class="ruby-identifier">flat_map</span>(<span class="ruby-value">:comments</span>)
 </pre>
+
+<p>The main differences between the <code>#flat_map</code> and <code>#follow_assoc</code> approaches:</p>
+<ul><li>
+<p><code>#follow_assoc</code> returns a query (or relation or scope, however you call it), so you can use other scoping methods, such as <code>#where</code>, <code>#limit</code>, <code>#order</code>.</p>
+</li><li>
+<p><code>#flat_map</code> returns an Array, so you cannot use other scoping methods.</p>
+</li><li>
+<p><code>#flat_map</code> must be used with eager loading. Forgetting to do so makes N+1 query likely.</p>
+</li><li>
+<p><code>#follow_assoc</code> only loads the final matched records.</p>
+</li><li>
+<p><code>#flat_map</code> loads every associations on the way, this is wasteful when you don&#39;t need them.</p>
+</li></ul>
 <dl class="rdoc-list label-list"><dt>association_names
 <dd>
 <p>The associations that you want to follow. They are your <code>#belongs_to</code>, <code>#has_many</code>, <code>#has_one</code>, <code>#has_and_belongs_to_many</code>.</p>
@@ -133,10 +147,10 @@
 <p>If you pass in more than one, they will be followed in order.</p>
 </dd><dt>options
 <dd>
-<p>These are the options that can be passed as last argument.</p>
+<p>Following are the options that can be passed as last argument.</p>
 
-<p>If you are passing multiple association_names, the options only affect the last one.</p>
-</dd><dt>:ignore_limit option
+<p>If you are passing multiple association_names, the options only affect the last association.</p>
+</dd><dt>option :ignore_limit
 <dd>
 <p>When true, <code>#limit</code> and <code>#offset</code> that are set from default_scope, on associations, and from <code>#has_one</code> are ignored. <br> Removing the limit from <code>#has_one</code> makes them be treated like a <code>#has_many</code>.</p>
 
@@ -154,7 +168,7 @@
 
           
           <div class="method-source-code" id="follow_assoc-source">
-            <pre><span class="ruby-comment"># File lib/active_record_follow_assoc/query_methods.rb, line 42</span>
+            <pre><span class="ruby-comment"># File lib/active_record_follow_assoc/query_methods.rb, line 51</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">follow_assoc</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">association_names</span>)
   <span class="ruby-identifier">options</span> = <span class="ruby-identifier">association_names</span>.<span class="ruby-identifier">extract_options!</span>
   <span class="ruby-constant">ActiveRecordFollowAssoc</span><span class="ruby-operator">::</span><span class="ruby-constant">CoreLogic</span>.<span class="ruby-identifier">follow_assoc</span>(<span class="ruby-keyword">self</span>, <span class="ruby-identifier">association_names</span>, <span class="ruby-identifier">options</span>)
