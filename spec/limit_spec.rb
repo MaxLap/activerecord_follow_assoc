@@ -6,6 +6,10 @@ describe "follow_assoc" do
   it "follows has_many with limit on the assoc" do
     skip if Test::SelectedDBHelper == Test::MySQL
 
+    # There is a bug in this situation in those versions...
+    # They mess up the default_scope by overwriting the value with the limit...
+    skip if [[5, 0], [5, 1]].include?([ActiveRecord::VERSION::MAJOR, ActiveRecord::VERSION::MINOR])
+
     p1 = Post.create!(title: 'p1')
     c1_1 = p1.comments.create!(content: 'c1.1')
     c1_2 = p1.comments.create!(content: 'c1.2')
