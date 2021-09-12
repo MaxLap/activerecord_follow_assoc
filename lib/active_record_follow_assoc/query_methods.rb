@@ -1,4 +1,7 @@
+# See QueryMethods
+module ActiveRecordFollowAssoc
 
+end
 
 module ActiveRecordFollowAssoc::QueryMethods
   # Returns a new relation which will return records of the specified associations of
