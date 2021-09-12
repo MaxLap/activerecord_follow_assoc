@@ -8,7 +8,7 @@ desc "Generate documentation for the gem"
 task :run_rdoc do
   args = ["rdoc"]
   args << "--template-stylesheets=docs_customization.css"
-  args << "--title=activerecord_where_assoc"
+  args << "--title=activerecord_follow_assoc"
   args << "--output=docs"
   args << "--show-hash"
   args << "lib/active_record_follow_assoc/query_methods.rb"

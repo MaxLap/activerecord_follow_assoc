@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 
-<title>module ActiveRecordFollowAssoc::QueryMethods - activerecord_where_assoc</title>
+<title>module ActiveRecordFollowAssoc::QueryMethods - activerecord_follow_assoc</title>
 
 <script type="text/javascript">
   var rdoc_rel_prefix = "../";
@@ -162,13 +162,23 @@
 </li><li>
 <p>For this one special case, you want to check the other records that match your has_one</p>
 </li></ul>
+</dd><dt>option :poly_belongs_to
+<dd>
+<p>If the last association of association_names is a polymorphic belongs_to, then by default, <code>#follow_assoc</code> will raise an exception. This is because there are many unrelated models that could be the one referred to by the records, but an ActiveRecord relation can only target a single Model.</p>
+
+<p>For this reason, you must choose which Model to “look into” when following a polymorphic belongs_to. This is what the :poly_belongs_to option does.</p>
+
+<p>For example, you can&#39;t just go from “Picture” and <a href="QueryMethods.html#method-i-follow_assoc"><code>follow_assoc</code></a> the polymorphic belongs_to association “imageable”. But if what you are looking for is only the employees, then this works:</p>
+
+<pre class="ruby"><span class="ruby-identifier">employee_scope</span> = <span class="ruby-identifier">pictures_scope</span>.<span class="ruby-identifier">follow_assoc</span>(<span class="ruby-value">:imageable</span>, <span class="ruby-value">poly_belongs_to:</span> <span class="ruby-constant">Employee</span>)
+</pre>
 </dd></dl>
           
           
 
           
           <div class="method-source-code" id="follow_assoc-source">
-            <pre><span class="ruby-comment"># File lib/active_record_follow_assoc/query_methods.rb, line 54</span>
+            <pre><span class="ruby-comment"># File lib/active_record_follow_assoc/query_methods.rb, line 68</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">follow_assoc</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">association_names</span>)
   <span class="ruby-identifier">options</span> = <span class="ruby-identifier">association_names</span>.<span class="ruby-identifier">extract_options!</span>
   <span class="ruby-constant">ActiveRecordFollowAssoc</span><span class="ruby-operator">::</span><span class="ruby-constant">CoreLogic</span>.<span class="ruby-identifier">follow_assoc</span>(<span class="ruby-keyword">self</span>, <span class="ruby-identifier">association_names</span>, <span class="ruby-identifier">options</span>)

@@ -51,6 +51,20 @@ module ActiveRecordFollowAssoc::QueryMethods
   #     dealing with a heavy/slow query. The query used to deal with +#has_many+ is less complex, and
   #     may prove faster.
   #   * For this one special case, you want to check the other records that match your has_one
+  #
+  # [option :poly_belongs_to]
+  #   If the last association of association_names is a polymorphic belongs_to, then by default,
+  #   +#follow_assoc+ will raise an exception. This is because there are many unrelated models
+  #   that could be the one referred to by the records, but an ActiveRecord relation can only
+  #   target a single Model.
+  #
+  #   For this reason, you must choose which Model to "look into" when following a polymorphic
+  #   belongs_to. This is what the :poly_belongs_to option does.
+  #
+  #   For example, you can't just go from "Picture" and follow_assoc the polymorphic belongs_to
+  #   association "imageable". But if what you are looking for is only the employees, then this works:
+  #     employee_scope = pictures_scope.follow_assoc(:imageable, poly_belongs_to: Employee)
+  #
   def follow_assoc(*association_names)
     options = association_names.extract_options!
     ActiveRecordFollowAssoc::CoreLogic.follow_assoc(self, association_names, options)

@@ -177,8 +177,7 @@ module ActiveRecordFollowAssoc
             end
             msg << "This is not supported by ActiveRecord when doing joins, but it is by FollowAssoc. However, "
             msg << "you must pass the :poly_belongs_to option to specify what to do in this case.\n"
-            # TODO: Change this path to the one for this gem
-            #msg << "See https://maxlap.github.io/activerecord_where_assoc/ActiveRecordWhereAssoc/RelationReturningMethods.html#module-ActiveRecordWhereAssoc::RelationReturningMethods-label-3Apoly_belongs_to+option"
+            msg << "See the :poly_belongs_to option at https://maxlap.dev/activerecord_follow_assoc/ActiveRecordFollowAssoc/QueryMethods.html"
             raise ActiveRecordFollowAssoc::PolymorphicBelongsToWithoutClasses, msg
           elsif on_poly_belongs_to.is_a?(Class) && on_poly_belongs_to < ActiveRecord::Base
               on_poly_belongs_to
