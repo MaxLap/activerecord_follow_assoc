@@ -12,6 +12,9 @@ require_relative "../spec/support/load_test_env"
 
 module ActiveRecordFollowAssoc::Helpers
   def make_data
+    u1 = User.create!(name: 'u1')
+    u2 = User.create!(name: 'u2')
+
     s1 = Section.create!(name: 's1')
     s2 = Section.create!(name: 's2')
     s3 = Section.create!(name: 's3')
@@ -54,7 +57,7 @@ module ActiveRecordFollowAssoc::Helpers
   def self.inspect
     <<-TEXT.strip_heredoc.rstrip
       Helper functions:
-      * execute: (shortcut: `x`) Executes an sql query. If called with no parameters, will call gets until 
+      * execute: (shortcut: `x`) Executes an sql query. If called with no parameters, will call gets until
                  and empty line is given
       * log_sql(true/false): Toggles logging SQL to STDOUT
       * make_data: Generate a basic set of data

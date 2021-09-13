@@ -4,19 +4,26 @@ This gem is still a work in progress. It hasn't been released yet.
 
 ![Test supported versions](https://github.com/MaxLap/activerecord_follow_assoc/workflows/Test%20supported%20versions/badge.svg)
 
-Easily follow associations in your ActiveRecord queries, so you can go from querying one model to querying
-an association's model.
+Let's say that, in your Rails app, you want to get all of the comments to the recent posts the
+current user made. Think of how you would do it.
 
-From this query: `my_posts = Post.where(published: true)`, you can do
-`my_posts.follow_assoc(:comments)` to now query the comments of the published posts.
+Here how this gem allows you to do it:
 
-`follow_assoc` can follow all kinds of associations: `belongs_to`, `has_many`, `has_one`, `has_and_belongs_to_many`.
+```ruby
+current_user.posts.recent.follow_assoc(:comments)
+```
 
-`has_one` will actually be treated as a has_one. So `my_posts.follow_assoc(:last_comment)` won't return every
-comments of the posts in `my_posts`, only last one of each post.
+The `follow_assoc` method, added by this gem basically allows you to start a new query on the associations
+of the records that the current query would return.
 
-No query is executed by `follow_assoc`. The `my_posts` query isn't loaded from the database either. It's only when the
-resulting relation is used that the built query is executed (as a regular query would be).
+Here is a more complete [introduction to this gem](INTRODUCTION.md).
+
+Benefits of `follow_assoc`:
+* Works the same way for all kinds of association `belongs_to`, `has_many`, `has_one`, `has_and_belongs_to_many`
+* You can use `where`, `order` and other such methods on the result
+* By nesting SQL queries, the only records that need to be loaded are the final ones, so the above example
+  wouldn't have loaded any `Post` from the database. This usually leads to faster code.
+* You avoid many [problems with the alternative options](ALTERNATIVES_PROBLEMS.md).
 
 ## Why / when do you need this?
 
@@ -34,44 +41,6 @@ end
 Note that this won't work if `sections` is an `Array`, see [Usage](#Usage) for details.
 
 Doing this without follow_assoc can be verbose, error-prone and less efficient depending on the approach taken.
-
-## The alternatives
-
-Instead of using this gem, you can either:
-* Use `map`/`flat_map`: `my_comments.includes(:post).map(&:post)` / `my_posts.includes(:comments).flat_map(&:comments)`
-* Nest queries: `Comment.where(post_id: my_posts)` or `Section.where(id: my_posts.select(:section_id))`
-* If you think of another way, feel free to open an issue.
-
-With `flat_map`:
-* You end up with an array instead of a relation, so you can't apply more scoping or other SQL-based tools.
-* You need to do remember to do eager loading to avoid the infamous N+1 query problem
-* If you need to filter the records, then you either:
-  * do it in Ruby... so you loaded extra records
-  * add an association with the condition... All those extra associations end up being noise.
-* You need to load the posts to then be able to call `comments` on them. This is wasteful if you don't need the posts for anything else.
-
-When nesting query:
-* It's error prone. You can easily forget a `select(:section_id)`, and it will instead use the id.
-* Using this approach for a `has_one` like `last_comment` without returning all the comments is hard.
-* The intent of the code is hidden. You are following an association, but you never even name it.
-* If the association is changed, such as by adding a condition to it or changing the name of the column, those nested queries must all be changed.
-* If the association has multiple steps (has_many :through, has_and_belongs_to_many), then you need multiple nested queries.
-
-
-Now consider a case where you want every users that commented to posts in some specific sections.
-```ruby
-my_sections = Section.where(...)
-
-# flat_map:
-my_sections.preload(:posts, :comments, :user).flat_map(&:posts).flat_map(&:comments).map(&:user)
-# nesting query:
-User.where(Comment.where(post_id: Post.where(section_id: my_sections)).select(:user_id))
-
-# With the gem:
-my_sections.follow_assoc(:posts, :comments, :user)
-```
-
-You could also add some `has_many :through` associations to make `flat_map` and `follow_assoc` shorter.
 
 ## Installation
 
@@ -98,10 +67,10 @@ Or install it yourself with:
 The doc is [here](https://maxlap.dev/activerecord_follow_assoc/ActiveRecordFollowAssoc/QueryMethods.html). Here is a basic usage:
 
 Starting from a query or a model, you call `follow_assoc` with an association. What you get back is another query,
-but it is on the association's model. That new query also has a `where` to only return the records that are 
+but it is on the association's model. That new query also has a `where` to only return the records that are
 directly associated with the scopes that the initial query would have returned..
 
-So `my_comments.follow_assoc(:posts)` gives you a query on `Post` which only returns the posts that were 
+So `my_comments.follow_assoc(:posts)` gives you a query on `Post` which only returns the posts that were
 related to the records that `my_comments` would return.
 
 ```
@@ -119,8 +88,8 @@ spam_comments_in_section = my_sections.follow_assoc(:posts).follow_assoc(:commen
 
 The `follow_assoc` method is only available on models and queries (also often called relation or scope). You cannot use
 it on an `Array` of record. If you need to use `follow_assoc` in that situation, then you must make a query yourself:
-`sections_query = Section.where(id: my_sections)`. Then you can use `follow_assoc` as explained: 
-`spam_comments_in_section = sections_query.follow_assoc(:posts, :comments).spam` 
+`sections_query = Section.where(id: my_sections)`. Then you can use `follow_assoc` as explained:
+`spam_comments_in_section = sections_query.follow_assoc(:posts, :comments).spam`
 
 ## Known issues
 
