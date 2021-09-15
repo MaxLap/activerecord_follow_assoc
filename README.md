@@ -5,15 +5,17 @@ This gem is still a work in progress. It hasn't been released yet.
 ![Test supported versions](https://github.com/MaxLap/activerecord_follow_assoc/workflows/Test%20supported%20versions/badge.svg)
 
 Let's say that, in your Rails app, you want to get all of the comments to the recent posts the
-current user made. Think of how you would do it.
+current user made.
 
-Here how this gem allows you to do it:
+Think of how you would do it.
+
+Here's how this gem allows you to do it:
 
 ```ruby
 current_user.posts.recent.follow_assoc(:comments)
 ```
 
-The `follow_assoc` method, added by this gem basically allows you to start a new query on the associations
+The `follow_assoc` method, added by this gem allows you to query the specified association 
 of the records that the current query would return.
 
 Here is a more complete [introduction to this gem](INTRODUCTION.md).
@@ -38,7 +40,7 @@ def recent_comments_within(sections)
 end
 ```
 
-Note that this won't work if `sections` is an `Array`, see [Usage](#Usage) for details.
+Note that this won't work if `sections` is an `Array`. `follow_assoc` is available in the same places as `where`. See [Usage](#Usage) for details.
 
 Doing this without follow_assoc can be verbose, error-prone and less efficient depending on the approach taken.
 
@@ -64,22 +66,21 @@ Or install it yourself with:
 
 ## Usage
 
-The doc is [here](https://maxlap.dev/activerecord_follow_assoc/ActiveRecordFollowAssoc/QueryMethods.html). Here is a basic usage:
+Starting from a query or a model, you call `follow_assoc` with an association's name. It returns another query that:
 
-Starting from a query or a model, you call `follow_assoc` with an association. What you get back is another query,
-but it is on the association's model. That new query also has a `where` to only return the records that are
-directly associated with the scopes that the initial query would have returned..
+* searches in the association's model
+* has a `where` to only return the records that are associated with the records that the initial query would have returned.
 
-So `my_comments.follow_assoc(:posts)` gives you a query on `Post` which only returns the posts that were
-related to the records that `my_comments` would return.
+So `my_comments.follow_assoc(:posts)` gives you a query on `Post` which only returns the posts that are
+associated to the records of `my_comments`.
 
-```
+```ruby
 # Getting the spam comments to posts by a specific author
 spam_comments = author.posts.follow_assoc(:comments).spam
 ```
 
 As a shortcut, you can also give multiple association to `follow_assoc`. Doing so is equivalent to consecutive calls to it.
-```
+```ruby
 # Getting the spam comments to posts in some sections
 spam_comments_in_section = my_sections.follow_assoc(:posts, :comments).spam
 # Equivalent to
@@ -88,24 +89,30 @@ spam_comments_in_section = my_sections.follow_assoc(:posts).follow_assoc(:commen
 
 The `follow_assoc` method is only available on models and queries (also often called relation or scope). You cannot use
 it on an `Array` of record. If you need to use `follow_assoc` in that situation, then you must make a query yourself:
-`sections_query = Section.where(id: my_sections)`. Then you can use `follow_assoc` as explained:
-`spam_comments_in_section = sections_query.follow_assoc(:posts, :comments).spam`
+```ruby
+sections_query = Section.where(id: my_sections)
+# Then you can use `follow_assoc`
+spam_comments_in_section = sections_query.follow_assoc(:posts, :comments).spam
+```
+
+Detailed doc is [here](https://maxlap.dev/activerecord_follow_assoc/ActiveRecordFollowAssoc/QueryMethods.html).
 
 ## Known issues
 
 **No support for recursive has_one**
 
-The SQL to do this while isolating the different layers of conditions is a mess and I worry about
-the resulting performance. So for now, this will raise an exception. You can use the ignore_limit: true option
+The SQL to handle recursive has_one while isolating the different layers of conditions is a mess and I worry about
+the resulting performance. So for now, this will raise an exception. You can use the `ignore_limit: true` option
 to treat the has_one as a has_many.
 
 **MySQL doesn't support sub-limit**
 
-On MySQL databases, it is not possible to use has_one associations and associations with a scope that apply either a limit or an offset.
+On MySQL databases, it is not possible to use has_one associations.
 
 I do not know of a way to do a SQL query that can deal with all the specifics of has_one for MySQL. If you have one, then please suggest it in an issue/pull request.
 
-In order to work around this, you must use the ignore_limit option. The behavior is less correct, but better than being unable to use the gem.
+In order to work around this, you must use the `ignore_limit: true` option, which means that the `has_one` will be treated
+like a `has_many`.
 
 ## Another recommended gem
 

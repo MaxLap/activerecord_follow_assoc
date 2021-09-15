@@ -4,8 +4,8 @@ This is an introduction to the
 Rails has a system to interact with your database called ActiveRecord. This gem
 is an extension to it, making a specific use-case simpler.
 
-Every once in a while, I happen to have a record and to need which I need records from
-pretty deep within its associations. Let's have two examples:
+Every once in a while, I need records that are pretty deep within my associations.
+Let's have two examples:
 * you want to get all of the recent comments to the posts the current user made.
 * you want to get all of the sections of the posts on which the current user made a comment
 
