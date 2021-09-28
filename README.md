@@ -44,7 +44,6 @@ Doing this without follow_assoc can be verbose, error-prone and less efficient d
 
 ## Installation
 
-**This is not released yet. This won't work.**
 Rails 4.1 to 6.1 are supported with Ruby 2.1 to 3.0. Tested against SQLite3, PostgreSQL and MySQL. The gem
 only depends on the `activerecord` gem.
 
