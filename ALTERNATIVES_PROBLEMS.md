@@ -24,7 +24,7 @@ Notes:
 * `preload` does the same thing as `includes`: eager loading. I prefer to use `preload`
   and made a [blog post](https://maxlap.dev/blog/2021/02/15/you-should-avoid-includes-in-rails.html)
   about it.
-* In the second example, because the associations are `belongs_to`, the `flap_map` could
+* In the second example, because the associations are `belongs_to`, the `flat_map` could
   have just been `map`.
 
 Problems:
