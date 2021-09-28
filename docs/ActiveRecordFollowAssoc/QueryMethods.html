@@ -116,7 +116,14 @@
 
         <div class="method-description">
           
-          <p>Returns a new relation which will return records of the specified associations of the models.</p>
+          <p>Query the specified association of the records that the current query would return.</p>
+
+<p>Returns a new relation (also known as a query) which:</p>
+<ul><li>
+<p>targets the association&#39;s model. So +Post.follow_assoc(:comments)+ will return comments.</p>
+</li><li>
+<p>only returns the records that are associated with those that the receiver would return. So +Post.where(published: true).follow_assoc(:comments)+ only returns the comments of published posts.</p>
+</li></ul>
 
 <p>You could say this is a way of doing a <code>#flat_map</code> of the association on the result of the current relation, but without loading the records of the first relation and without having to worry about eager loading.</p>
 
@@ -130,7 +137,7 @@
 
 <p>The main differences between the <code>#flat_map</code> and <code>#follow_assoc</code> approaches:</p>
 <ul><li>
-<p><code>#follow_assoc</code> returns a query (or relation or scope, however you call it), so you can use other scoping methods, such as <code>#where</code>, <code>#limit</code>, <code>#order</code>.</p>
+<p><code>#follow_assoc</code> returns a relation (or query or scope, however you call it), so you can use other scoping methods, such as <code>#where</code>, <code>#limit</code>, <code>#order</code>.</p>
 </li><li>
 <p><code>#flat_map</code> returns an Array, so you cannot use other scoping methods.</p>
 </li><li>
@@ -142,9 +149,9 @@
 </li></ul>
 <dl class="rdoc-list label-list"><dt>association_names
 <dd>
-<p>The associations that you want to follow. They are your <code>#belongs_to</code>, <code>#has_many</code>, <code>#has_one</code>, <code>#has_and_belongs_to_many</code>.</p>
+<p>The first argument(s) are the associations that you want to follow. They are the names of your <code>#belongs_to</code>, <code>#has_many</code>, <code>#has_one</code>, <code>#has_and_belongs_to_many</code>.</p>
 
-<p>If you pass in more than one, they will be followed in order.</p>
+<p>If you pass in more than one, they will be followed in order. Ex: +Post.follow_assoc(:comments, :author)+ gives you the authors of the comments of the posts.</p>
 </dd><dt>options
 <dd>
 <p>Following are the options that can be passed as last argument.</p>
@@ -152,7 +159,7 @@
 <p>If you are passing multiple association_names, the options only affect the last association.</p>
 </dd><dt>option :ignore_limit
 <dd>
-<p>When true, <code>#limit</code> and <code>#offset</code> that are set from default_scope, on associations, and from <code>#has_one</code> are ignored. <br> Removing the limit from <code>#has_one</code> makes them be treated like a <code>#has_many</code>.</p>
+<p>When true, <code>#has_one</code> will be treated like a <code>#has_many</code>.</p>
 
 <p>Main reasons to use ignore_limit: true</p>
 <ul><li>
@@ -178,7 +185,7 @@
 
           
           <div class="method-source-code" id="follow_assoc-source">
-            <pre><span class="ruby-comment"># File lib/active_record_follow_assoc/query_methods.rb, line 68</span>
+            <pre><span class="ruby-comment"># File lib/active_record_follow_assoc/query_methods.rb, line 73</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">follow_assoc</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">association_names</span>)
   <span class="ruby-identifier">options</span> = <span class="ruby-identifier">association_names</span>.<span class="ruby-identifier">extract_options!</span>
   <span class="ruby-constant">ActiveRecordFollowAssoc</span><span class="ruby-operator">::</span><span class="ruby-constant">CoreLogic</span>.<span class="ruby-identifier">follow_assoc</span>(<span class="ruby-keyword">self</span>, <span class="ruby-identifier">association_names</span>, <span class="ruby-identifier">options</span>)

@@ -4,8 +4,14 @@ module ActiveRecordFollowAssoc
 end
 
 module ActiveRecordFollowAssoc::QueryMethods
-  # Returns a new relation which will return records of the specified associations of
-  # the models.
+  # Query the specified association of the records that the current query would return.
+  #
+  # Returns a new relation (also known as a query) which:
+  # * targets the association's model.
+  #   So +Post.follow_assoc(:comments)+ will return comments.
+  # * only returns the records that are associated with those that the receiver would return.
+  #   So +Post.where(published: true).follow_assoc(:comments)+ only returns the comments of
+  #   published posts.
   #
   # You could say this is a way of doing a +#flat_map+ of the association on the result
   # of the current relation, but without loading the records of the first relation and
@@ -19,7 +25,7 @@ module ActiveRecordFollowAssoc::QueryMethods
   #   Post.where(published: true).preload(:comments).flat_map(:comments)
   #
   # The main differences between the +#flat_map+ and +#follow_assoc+ approaches:
-  # * +#follow_assoc+ returns a query (or relation or scope, however you call it), so you can
+  # * +#follow_assoc+ returns a relation (or query or scope, however you call it), so you can
   #   use other scoping methods, such as +#where+, +#limit+, +#order+.
   # * +#flat_map+ returns an Array, so you cannot use other scoping methods.
   # * +#flat_map+ must be used with eager loading. Forgetting to do so makes N+1 query likely.
@@ -27,10 +33,11 @@ module ActiveRecordFollowAssoc::QueryMethods
   # * +#flat_map+ loads every associations on the way, this is wasteful when you don't need them.
   #
   # [association_names]
-  #   The associations that you want to follow. They are your +#belongs_to+, +#has_many+,
-  #   +#has_one+, +#has_and_belongs_to_many+.
+  #   The first argument(s) are the associations that you want to follow. They are the names of
+  #   your +#belongs_to+, +#has_many+, +#has_one+, +#has_and_belongs_to_many+.
   #
   #   If you pass in more than one, they will be followed in order.
+  #   Ex: +Post.follow_assoc(:comments, :author)+ gives you the authors of the comments of the posts.
   #
   # [options]
   #   Following are the options that can be passed as last argument.
@@ -38,9 +45,7 @@ module ActiveRecordFollowAssoc::QueryMethods
   #   If you are passing multiple association_names, the options only affect the last association.
   #
   # [option :ignore_limit]
-  #   When true, +#limit+ and +#offset+ that are set from default_scope, on associations, and from
-  #   +#has_one+ are ignored. <br>
-  #   Removing the limit from +#has_one+ makes them be treated like a +#has_many+.
+  #   When true, +#has_one+ will be treated like a +#has_many+.
   #
   #   Main reasons to use ignore_limit: true
   #   * Needed for MySQL to be able to do anything with +#has_one+ associations because MySQL
