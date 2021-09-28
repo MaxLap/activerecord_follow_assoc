@@ -37,7 +37,7 @@ Notes:
 
 Nested query way: You nest the queries within one another, so you only have to do a single one. This usually has better performance since you need to load less records.
 
-Adding associations way: A third way is possible, creating a custom association using `has_many` with the `:through` option. But adding many one-use association like that is noisy, impractical and annoying. There is an example in [ALTERNATIVES_PROBLEMS.md](ALTERNATIVES_PROBLEMS.md).
+A third way I can think of: creating a custom association using `has_many` with the `:through` option. But adding many one-use association like that is noisy, impractical and annoying. There is an example in [ALTERNATIVES_PROBLEMS.md](ALTERNATIVES_PROBLEMS.md).
 
 Each of those ways have problems or weaknesses:
 
@@ -69,9 +69,9 @@ my_sections = current_user.comments.follow_assoc(:post, :section)
 
 It's almost too simple compared to the built-in ways:
 * Readability-wise it's great, you just list the associations you want to follow
-* You can keep on using `where`, `order`, etc, this time related to the association's model
+* You can keep on using `where`, `order`, etc, but now on the association's model
 * Use it anywhere you can use `where`
-* Works the same way `belongs_to`, `has_many`, etc.
+* Works the same way for `belongs_to`, `has_many`, etc.
 * Handles a lot of edge-cases a lot more easily compared to the first 3 ways:
   * Recursive associations (ex: `Comments` having `sub_comments`)
   * `has_one` will only consider one associated record per record. Doing this
