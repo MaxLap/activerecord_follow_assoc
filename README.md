@@ -1,5 +1,3 @@
-This gem is still a work in progress. It hasn't been released yet.
-
 # ActiveRecord Follow Assoc
 
 ![Test supported versions](https://github.com/MaxLap/activerecord_follow_assoc/workflows/Test%20supported%20versions/badge.svg)
