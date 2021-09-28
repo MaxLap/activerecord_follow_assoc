@@ -6,25 +6,23 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Maxime Lapointe"]
   spec.email         = ["hunter_spawn@hotmail.com"]
 
-  spec.summary       = %q{Describe your activerecord query by following associations}
-  spec.description   = %q{In ActiveRecord, when building a query, you can now easily switch to querying an association. If you need the comments of some posts, but don't need the posts: `Post.where(...).follow_assoc(:comments)`. You can then chain `where` on the comments.}
-  # TODO spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.summary       = %q{Follow associations within your ActiveRecord queries}
+
+  spec.description   = %q{In ActiveRecord, allows you to query the association of the records that your current query would return. If you need the comments of some posts: `Post.where(...).follow_assoc(:comments)`. You can then chain `where` on the comments.}
+  spec.homepage      = "https://github.com/MaxLap/activerecord_follow_assoc"
   spec.license       = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.1.0")
 
-  spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
+  spec.metadata["homepage_uri"] = spec.homepage
+  spec.metadata["source_code_uri"] = "https://github.com/MaxLap/activerecord_follow_assoc"
 
-  # TODO spec.metadata["homepage_uri"] = spec.homepage
-  #TODO spec.metadata["source_code_uri"] = "TODO: Put your gem's public repo URL here."
-  #TODO spec.metadata["changelog_uri"] = "TODO: Put your gem's CHANGELOG.md URL here."
-
-  # Specify which files should be added to the gem when it is released.
-  # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
   spec.files         = Dir.chdir(File.expand_path('..', __FILE__)) do
     `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   end
-  spec.bindir        = "exe"
-  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
+
+  lib_files = `git ls-files -z lib`.split("\x0")
+  spec.files = [*lib_files, "LICENSE.txt", "README.md"]
+
   spec.require_paths = ["lib"]
 
   spec.add_dependency "activerecord", ">= 4.1.0"
