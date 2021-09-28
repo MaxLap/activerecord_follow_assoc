@@ -87,6 +87,6 @@ Post.published.follow_assoc(:author)
 
 If you guessed "The authors that published posts" or "Published posts' authors", then it
 means this introduction did it's job! Otherwise, if you want to provide feedback,
-feel free to open an issue or post in the [General feedback one](https://github.com/MaxLap/activerecord_follow_assoc/issues/1)
+feel free to open an issue or post in the [General feedback issue](https://github.com/MaxLap/activerecord_follow_assoc/issues/1).
 
-Here is the link to the gem: [activerecord_where_assoc](https://github.com/MaxLap/activerecord_where_assoc)
+Here is the link to the gem: [activerecord_follow_assoc](https://github.com/MaxLap/activerecord_follow_assoc)
