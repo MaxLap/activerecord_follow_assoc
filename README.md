@@ -13,7 +13,7 @@ Here's how this gem allows you to do it:
 current_user.posts.recent.follow_assoc(:comments)
 ```
 
-The `follow_assoc` method, added by this gem allows you to query the specified association 
+The `follow_assoc` method, added by this gem, allows you to query the specified association
 of the records that the current query would return.
 
 Here is a more complete [introduction to this gem](INTRODUCTION.md).
@@ -122,9 +122,7 @@ It allows you to make conditions based on your associations (without changing th
 Post.where_assoc_exists([:comments, :author], &:admins)
 ```
 
-This could be done with `follow_assoc`: `User.admins.follow_assoc(:comments, :post)`. But if you wanted conditions on
-a second association, then `follow_assoc` wouldn't work. It all depends on the context where you need to do the query
-and what starting point you have.
+This could be done with `follow_assoc`: `User.admins.follow_assoc(:comments, :post)`. But if you wanted conditions on a second association, then `follow_assoc` wouldn't work. On the other hand, if you received a scope on users and wanted their posts, then `follow_assoc` would be a nicer tool for the job. It all depends on the context where you need to do the query and what starting point you have.
 
 ## Development
 
