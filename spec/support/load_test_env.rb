@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-require "pry"
 
 require_relative "../../lib/activerecord_follow_assoc"
 

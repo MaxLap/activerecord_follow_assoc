@@ -10,17 +10,16 @@ module ActiveRecordFollowAssoc
     # => "EXISTS (SELECT... *relation1*) OR EXISTS (SELECT... *relation2*)"
     def self.sql_for_any_exists(relations)
       relations = [relations] unless relations.is_a?(Array)
-      relations = relations.reject { |rel| rel.is_a?(ActiveRecord::NullRelation) }
+      relations = relations.reject { |rel| ActiveRecordCompat.null_relation?(rel) }
       sqls = relations.map { |rel| "EXISTS (#{rel.select('1').to_sql})" }
       if sqls.size > 1
-        "(#{sqls.join(" OR ")})" # Parens needed when embedding the sql in a `where`, because the OR could make things wrong
+        "(#{sqls.join(' OR ')})" # Parens needed when embedding the sql in a `where`, because the OR could make things wrong
       elsif sqls.size == 1
         sqls.first
       else
         "0=1"
       end
     end
-
 
     def self.follow_assoc(relation, association_names, options_for_last_assoc = {})
       association_names[0...-1].each do |association_name|
@@ -51,12 +50,12 @@ module ActiveRecordFollowAssoc
         alias_scope, join_constraints = wrapper_and_join_constraints(sub_reflection, options[:poly_belongs_to])
 
         constraints_relation = resolve_constraints(sub_reflection, klass, constraints_chain[i])
-        constraints_relation = constraints_relation.unscope(:limit, :offset, :order) if option_value(options, :ignore_limit)
+        constraints_relation = constraints_relation.unscope(:limit, :offset, :order) if option_value(options,
+                                                                                                     :ignore_limit)
 
         if constraints_relation.limit_value
-          if alias_scope
-            raise "#{sub_reflection.name} is a recursive has_one, this is not supported by follow_assoc."
-          end
+          raise "#{sub_reflection.name} is a recursive has_one, this is not supported by follow_assoc." if alias_scope
+
           sub_relation = constraints_relation.where(join_constraints).unscope(:select).select(klass.primary_key)
 
           relation = relation.joins(sub_reflection.name)
@@ -156,8 +155,7 @@ module ActiveRecordFollowAssoc
 
       alias_scope = foreign_klass.base_class.unscoped
       alias_scope = alias_scope.from("#{table.name} #{ALIAS_TABLE.name}")
-      alias_scope = alias_scope.where(table[primary_key].eq(ALIAS_TABLE[primary_key]))
-      alias_scope
+      alias_scope.where(table[primary_key].eq(ALIAS_TABLE[primary_key]))
     end
 
     def self.class_for_reflection(reflection, on_poly_belongs_to)
@@ -166,24 +164,22 @@ module ActiveRecordFollowAssoc
       if poly_belongs_to?(actual_source_reflection)
         if reflection.options[:source_type]
           [reflection.options[:source_type].safe_constantize].compact
-        else
-          if on_poly_belongs_to.nil?
-            msg = String.new
-            if actual_source_reflection == reflection
-              msg << "Association #{reflection.name.inspect} is a polymorphic belongs_to. "
-            else
-              msg << "Association #{reflection.name.inspect} is a :through relation that uses a polymorphic belongs_to"
-              msg << "#{actual_source_reflection.name.inspect} as source without without a source_type. "
-            end
-            msg << "This is not supported by ActiveRecord when doing joins, but it is by FollowAssoc. However, "
-            msg << "you must pass the :poly_belongs_to option to specify what to do in this case.\n"
-            msg << "See the :poly_belongs_to option at https://maxlap.dev/activerecord_follow_assoc/ActiveRecordFollowAssoc/QueryMethods.html"
-            raise ActiveRecordFollowAssoc::PolymorphicBelongsToWithoutClasses, msg
-          elsif on_poly_belongs_to.is_a?(Class) && on_poly_belongs_to < ActiveRecord::Base
-              on_poly_belongs_to
+        elsif on_poly_belongs_to.nil?
+          msg = String.new
+          if actual_source_reflection == reflection
+            msg << "Association #{reflection.name.inspect} is a polymorphic belongs_to. "
           else
-            raise ArgumentError, "Received a bad value for :poly_belongs_to: #{on_poly_belongs_to.inspect}"
+            msg << "Association #{reflection.name.inspect} is a :through relation that uses a polymorphic belongs_to"
+            msg << "#{actual_source_reflection.name.inspect} as source without without a source_type. "
           end
+          msg << "This is not supported by ActiveRecord when doing joins, but it is by FollowAssoc. However, "
+          msg << "you must pass the :poly_belongs_to option to specify what to do in this case.\n"
+          msg << "See the :poly_belongs_to option at https://maxlap.dev/activerecord_follow_assoc/ActiveRecordFollowAssoc/QueryMethods.html"
+          raise ActiveRecordFollowAssoc::PolymorphicBelongsToWithoutClasses, msg
+        elsif on_poly_belongs_to.is_a?(Class) && on_poly_belongs_to < ActiveRecord::Base
+          on_poly_belongs_to
+        else
+          raise ArgumentError, "Received a bad value for :poly_belongs_to: #{on_poly_belongs_to.inspect}"
         end
       else
         reflection.klass
@@ -198,6 +194,7 @@ module ActiveRecordFollowAssoc
       loop do
         return reflection if reflection == reflection.source_reflection
         return reflection if has_and_belongs_to_many?(reflection)
+
         reflection = reflection.source_reflection
       end
     end
