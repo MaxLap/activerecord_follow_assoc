@@ -10,7 +10,7 @@ module ActiveRecordFollowAssoc
     # => "EXISTS (SELECT... *relation1*) OR EXISTS (SELECT... *relation2*)"
     def self.sql_for_any_exists(relations)
       relations = [relations] unless relations.is_a?(Array)
-      relations = relations.reject { |rel| rel.is_a?(ActiveRecord::NullRelation) }
+      relations = relations.reject { |rel| ActiveRecordCompat.null_relation?(rel) }
       sqls = relations.map { |rel| "EXISTS (#{rel.select('1').to_sql})" }
       if sqls.size > 1
         "(#{sqls.join(" OR ")})" # Parens needed when embedding the sql in a `where`, because the OR could make things wrong

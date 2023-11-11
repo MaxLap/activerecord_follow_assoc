@@ -61,6 +61,16 @@ module ActiveRecordFollowAssoc
       end
     end
 
+    if ActiveRecord.gem_version >= Gem::Version.new("7.1.0.alpha")
+      def self.null_relation?(reflection)
+        reflection.null_relation?
+      end
+    else
+      def self.null_relation?(reflection)
+        reflection.is_a?(ActiveRecord::NullRelation)
+      end
+    end
+
     if ActiveRecord.gem_version >= Gem::Version.new("5.0")
       def self.parent_reflection(reflection)
         reflection.parent_reflection
