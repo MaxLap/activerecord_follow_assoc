@@ -165,7 +165,7 @@ module ActiveRecordFollowAssoc
 
       if poly_belongs_to?(actual_source_reflection)
         if reflection.options[:source_type]
-          [reflection.options[:source_type].safe_constantize].compact
+          reflection.options[:source_type].safe_constantize
         else
           if on_poly_belongs_to.nil?
             msg = String.new

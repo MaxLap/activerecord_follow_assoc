@@ -145,11 +145,13 @@ class PolyBelongsTo < ActiveRecord::Base
       t.string :name
       t.string :referred_type
       t.integer :referred_id
+      t.integer :user_id
     end
     add_index :poly_belongs_tos, :name, unique: true # Helps avoid mistakes in a test's code
   end
 
   belongs_to :referred, polymorphic: true
+  belongs_to :user
   has_many :referring_PolyBelongsTo, class_name: 'PolyBelongsTo', as: :referred
 end
 
@@ -166,6 +168,8 @@ class User < ActiveRecord::Base
 
   belongs_to :favorite_section, class_name: 'Section'
   has_many :posts_in_favorite_section, class_name: 'Post', through: :favorite_section, source: :posts
+  has_many :poly_belongs_tos
+  has_many :posts_through_PolyBelongsTo, through: :poly_belongs_tos, source: :referred, source_type: "Post"
 end
 
 class SimpleUser < User

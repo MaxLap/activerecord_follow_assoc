@@ -42,6 +42,18 @@ describe "follow_assoc" do
     Post.follow_assoc(:referring_PolyBelongsTo).to_a.sort_by(&:id).should == [pb1]
   end
 
+  it "follow a has_many with :source_type option (polymorphic)" do
+    u1 = User.create!(name: 'u1')
+    u2 = User.create!(name: 'u2')
+    p1 = Post.create!(title: 'p1')
+    p2 = Post.create!(title: 'p2')
+    pb1 = PolyBelongsTo.create!(name: 'pb1', referred: p1, user: u1)
+    pb2 = PolyBelongsTo.create!(name: 'pb2', referred: pb1, user: u1)
+    pb3 = PolyBelongsTo.create!(name: 'pb3', referred: p1, user: u2)
+
+    User.follow_assoc(:posts_through_PolyBelongsTo).to_a.sort_by(&:id).should == [p1]
+  end
+
   it "follow a recursive has_many with :as option (polymorphic)" do
     p1 = Post.create!(title: 'p1')
     p2 = Post.create!(title: 'p2')
