@@ -38,7 +38,7 @@ task :generate_run_tests_on_head_workflow do
   config['jobs']['test']['strategy']['matrix']['include'] = [
       {'gemfile' => 'gemfiles/rails_head.gemfile', 'ruby_version' => 'head'},
       {'gemfile' => 'gemfiles/rails_head.gemfile', 'ruby_version' => 3.2},
-      {'gemfile' => 'gemfiles/rails_7_1.gemfile', 'ruby_version' => 'head'},
+      {'gemfile' => 'gemfiles/rails_7_2.gemfile', 'ruby_version' => 'head'},
   ]
 
   #
