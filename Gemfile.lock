@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    activerecord_follow_assoc (0.1.2)
+    activerecord_follow_assoc (0.1.3)
       activerecord (>= 4.1.0)
 
 GEM
