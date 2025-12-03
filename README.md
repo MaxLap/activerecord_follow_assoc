@@ -61,6 +61,18 @@ Or install it yourself with:
 
     $ gem install activerecord_follow_assoc
 
+## Sqlite issue
+
+If used with SQLite, not that there is a problem related to nested EXISTS in SQLite 3.51.0 (contained in the [sqlite3 gem version 2.8.0](https://rubygems.org/gems/sqlite3/versions/2.8.0)) and SQLite 3.51.1 (in 2.8.1). It is recommended to avoid the problematic version with:
+
+```ruby
+gem 'sqlite3', '!= 2.8.0', '!= 2.8.1'
+
+# Of you want another version pattern, you can have multiple ones.
+# The chosen version must match all conditions. ex:
+gem 'sqlite3', '>= 2.2.0', '!= 2.8.0', '!= 2.8.1'
+```
+
 ## Usage
 
 Starting from a query or a model, you call `follow_assoc` with an association's name. It returns another query that:
